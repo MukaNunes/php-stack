@@ -1,0 +1,12 @@
+[mysqld]
+max_connections = 500
+interactive_timeout = 300
+wait_timeout = 300
+
+default-storage-engine=innodb
+innodb_file_per_table=1
+performance-schema=0
+max_allowed_packet=268435456
+open_files_limit=10000
+innodb_log_file_size = 100M
+innodb_file_format = barracuda

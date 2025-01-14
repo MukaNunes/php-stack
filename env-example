@@ -1,0 +1,6 @@
+LANGUAGE="pt_BR.UTF-8"
+TIMEZONE="America/Sao_Paulo"
+MYSQL_ROOT_PASSWORD="root"
+MYSQL_USER="user"
+MYSQL_PASSWORD="password"
+MYSQL_DATABASE="database"

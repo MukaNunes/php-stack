@@ -1,0 +1,89 @@
+version: "3"
+services:
+    php5:
+        container_name: ws-php5
+        hostname: php5
+        restart: "unless-stopped"
+        build:
+            dockerfile: Dockerfile
+            context: php5
+            args:
+                LANGUAGE: ${LANGUAGE}
+                TIMEZONE: ${TIMEZONE}
+        depends_on:
+            - db
+            - redis
+        environment:
+            - PHP_IDE_CONFIG=serverName=XdebugServer
+        volumes:
+            - "./default/.bashrc:/root/.bashrc"
+            - "./php5/conf.d/99-custom.ini:/usr/local/etc/php/conf.d/99-custom.ini"
+            - "./logs:/var/log"
+            - "../:/var/www/html"
+            - "~/.ssh:/~/.ssh"
+        expose:
+            - "9000"
+        ports:
+            - '9000:9000'
+        stdin_open: true
+        tty: true
+        networks:
+            ws-network:
+                ipv4_address: 172.8.0.10
+    db:
+        image: "mysql:5.6"
+        container_name: ws-mysql
+        hostname: mysql
+        restart: "unless-stopped"
+        environment:
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+            MYSQL_USER: ${MYSQL_USER}
+            MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+            MYSQL_DATABASE: ${MYSQL_DATABASE}
+        volumes:
+            - "./default/.bashrc:/root/.bashrc"
+            - "./mysql/conf.d/custom.cnf:/etc/mysql/conf.d/custom.cnf"
+            - "./mysql/data:/var/lib/mysql:rw"
+        ports:
+            - "3303:3306"
+        networks:
+            ws-network:
+                ipv4_address: 172.8.0.11
+    redis:
+        image: "redis:7.4.2-alpine"
+        container_name: cacheserver
+        restart: "unless-stopped"
+        ports:
+            - "6379:6379"
+        networks:
+            ws-network:
+                ipv4_address: 172.8.0.12
+    nginx:
+        container_name: ws-nginx
+        hostname: nginx
+        restart: "unless-stopped"
+        build:
+            dockerfile: Dockerfile
+            context: nginx
+        volumes:
+            - "./nginx/nginx.conf:/etc/nginx/nginx.conf"
+            - "./logs:/var/log/nginx"
+            - "../:/var/www/html"
+        ports:
+            - '80:80'
+            - 443:443
+        depends_on:
+            - php5
+        links:
+            - php5
+        networks:
+            ws-network:
+                ipv4_address: 172.8.0.13
+networks:
+    ws-network:
+        name: "ws-network"
+        driver: bridge
+        ipam:
+            driver: default
+            config:
+                - subnet: 172.8.0.0/24
