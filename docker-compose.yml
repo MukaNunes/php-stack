@@ -1,5 +1,35 @@
 version: "3"
 services:
+    php5:
+        container_name: ws-php5
+        hostname: php5
+        restart: "unless-stopped"
+        build:
+            dockerfile: Dockerfile
+            context: php5
+            args:
+                LANGUAGE: ${LANGUAGE}
+                TIMEZONE: ${TIMEZONE}
+        depends_on:
+            - db
+            - redis
+        environment:
+            - PHP_IDE_CONFIG=serverName=XdebugServer
+        volumes:
+            - "./default/.bashrc:/root/.bashrc"
+            - "./php5/conf.d/99-custom.ini:/usr/local/etc/php/conf.d/99-custom.ini"
+            - "./logs:/var/log"
+            - "../:/var/www/html"
+            - "~/.ssh:/~/.ssh"
+        expose:
+            - "9000"
+        ports:
+            - '9000:9000'
+        stdin_open: true
+        tty: true
+        networks:
+            ws-network:
+                ipv4_address: 172.8.0.10
     php7:
         container_name: ws-php7
         hostname: php7
@@ -8,7 +38,6 @@ services:
             dockerfile: Dockerfile
             context: php7
             args:
-                GITHUB_TOKEN: ${GITHUB_TOKEN}
                 LANGUAGE: ${LANGUAGE}
                 TIMEZONE: ${TIMEZONE}
         depends_on:
@@ -75,8 +104,10 @@ services:
             - '80:80'
             - 443:443
         depends_on:
+            - php5
             - php7
         links:
+            - php5
             - php7
         networks:
             ws-network:
