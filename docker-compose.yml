@@ -1,35 +1,37 @@
 version: "3"
 services:
-    php5:
-        container_name: ws-php5
-        hostname: php5
+    php7:
+        container_name: ws-php7
+        hostname: php7
         restart: "unless-stopped"
         build:
             dockerfile: Dockerfile
-            context: php5
+            context: php7
             args:
+                GITHUB_TOKEN: ${GITHUB_TOKEN}
                 LANGUAGE: ${LANGUAGE}
                 TIMEZONE: ${TIMEZONE}
         depends_on:
             - db
             - redis
         environment:
+            - SYMFONY_ENV=dev
             - PHP_IDE_CONFIG=serverName=XdebugServer
         volumes:
             - "./default/.bashrc:/root/.bashrc"
-            - "./php5/conf.d/99-custom.ini:/usr/local/etc/php/conf.d/99-custom.ini"
+            - "./php7/conf.d/99-custom.ini:/usr/local/etc/php/conf.d/99-custom.ini"
             - "./logs:/var/log"
             - "../:/var/www/html"
             - "~/.ssh:/~/.ssh"
         expose:
-            - "9000"
+            - '9000'
         ports:
-            - '9000:9000'
+            - '9007:9000'
         stdin_open: true
         tty: true
         networks:
             ws-network:
-                ipv4_address: 172.8.0.10
+                ipv4_address: 172.8.0.11
     db:
         image: "mysql:5.6"
         container_name: ws-mysql
@@ -48,7 +50,7 @@ services:
             - "3303:3306"
         networks:
             ws-network:
-                ipv4_address: 172.8.0.11
+                ipv4_address: 172.8.0.15
     redis:
         image: "redis:7.4.2-alpine"
         container_name: cacheserver
@@ -57,7 +59,7 @@ services:
             - "6379:6379"
         networks:
             ws-network:
-                ipv4_address: 172.8.0.12
+                ipv4_address: 172.8.0.16
     nginx:
         container_name: ws-nginx
         hostname: nginx
@@ -73,12 +75,12 @@ services:
             - '80:80'
             - 443:443
         depends_on:
-            - php5
+            - php7
         links:
-            - php5
+            - php7
         networks:
             ws-network:
-                ipv4_address: 172.8.0.13
+                ipv4_address: 172.8.0.17
 networks:
     ws-network:
         name: "ws-network"
